@@ -8,7 +8,7 @@ h1 {
   font-family: Arial, Verdana, sans-serif;
   font-weight: bolder;
 }
-form.when {
+form {
   padding-top: 0.5em;
   text-align: center;
   width: 100%;
@@ -36,4 +36,11 @@ ul li {
 form.here input {
   font-size: 2em;
   margin-right: 1em;
+}
+p {
+  font-size: 2em;
+}
+p em {
+  font-style: normal;
+  font-weight: bold;
 }
