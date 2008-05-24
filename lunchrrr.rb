@@ -3,6 +3,9 @@ require 'camping/session'
 require 'oauth/consumer'
 require 'hpricot'
 require 'socket'
+require 'lib/active_resource_with_oauth'
+
+require 'lib/plazes_net'
 
 Camping.goes :Lunchrrr
 
@@ -25,23 +28,55 @@ else # localhost
   )
 end
 
+PlazesNet::Base.site = SITE
+
+module Lunchrrr::RequireAuth
+
+  def service(*args)
+    if self.class.to_s !~ /(Static|Identify)$/
+      if !@state.access_token
+        redirect '/identify' and return self
+      end
+    end
+
+    PlazesNet::Base.token = @state.access_token
+    super(*args)
+  end
+end
+
 
 module Lunchrrr
-  include Camping::Session
-
+  include Camping::Session, Lunchrrr::RequireAuth
 end
 
 def Lunchrrr.create
   Camping::Models::Session.create_schema
 end
 
+class PlazesNet::Presence
+  
+  def self.find_next_lunch
+    find(:one, :from => '/me/presence.xml')
+  end
+end
+
+
 module Lunchrrr::Controllers
   
-  class When < R '/(?:when)?'
+  class Start < R '/'
+
     def get
-      render :when
+      if @presence = PlazesNet::Presence.find_next_lunch
+        render :lunched
+      else
+        render :when
+      end
     end
-    
+  end
+
+
+  class When < R '/when'
+
     def post
       @state.time = @input.time
       redirect '/where'
@@ -57,23 +92,20 @@ module Lunchrrr::Controllers
 
       render :where
     end
-  end
-  
-  class Lunched < R '/lunched'
-    def get
-      render :lunched
-    end
+
     
     def post
       @state.access_token.post('/presences', { 
           :presence => { :plaze_id => @input.plaze_id, 
-                         :status => "lunchrrr",
-                         :scheduled_at => @state.time
-                       }
+            :status => "lunchrrr",
+            :scheduled_at => @state.time,
+            :scheduled_at_is_plaze_local => true
+          }
         }.to_query)
+      redirect '/'
     end
   end
-
+  
   class Static < R '/static/([a-z0-9]+\.[a-z]+)'
     def get(file)
       return File.read(File.join(ROOT, 'static', file))
@@ -123,8 +155,8 @@ module Lunchrrr::Views
   def identify
     h1 'Who are you?'
     p "You need to have an account at plazes.net."
-    p { "Go there now: <em>#{a 'http://plazes.net', :href => @authorize_url}</em>" }
-    p "No worries, it will send you back."
+    p { "Go there now: <em>#{a 'plazes.net', :href => @authorize_url}</em>" }
+    p "No worries, it will send you back here quickly."
   end
 
   def when
@@ -144,7 +176,7 @@ module Lunchrrr::Views
     ul do
       @restaurants.each do |restaurant|
         li do
-          form.here :method => :post, :action => 'lunched' do
+          form.here :method => :post, :action => '/where' do
             input :type => :hidden, :value => restaurant['id'], :name => 'plaze_id'
             input :type => :submit, :value => restaurant['name']
             text restaurant['address']
@@ -155,8 +187,11 @@ module Lunchrrr::Views
   end
   
   def lunched
-    h1 "Lunch'd"
-    p { "Done! Happy lunching at #{a 'florianihof', :href => 'http://plazes.net/plazes/12345'} on 1:30PM" }
+    h1 "Yo Lunch"
+    p do
+      text "At #{a @presence.plaze.name, :href => @presence.plaze.url} on #{@presence.scheduled_at_local.strftime('%H:%M')} "
+      a.unimportant "(change)", :href => @presence.url
+    end
     h2 "Invite for lunch"
     form do
       textarea { }
