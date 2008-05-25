@@ -79,7 +79,7 @@ PlazesNet::Base.site = SITE
 module Lunchrrr::RequireAuth
 
   def service(*args)
-    if self.class.to_s !~ /(Static|Identify)$/
+    if self.class.to_s !~ /(Static|Identify|Error)$/
       if !@state.access_token
         redirect '/identify' and return self
       end
