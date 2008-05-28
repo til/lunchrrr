@@ -52,12 +52,12 @@ ROOT = File.dirname(__FILE__)
 
 case Socket.gethostname
 when 'sandbox'
-  SITE = "https://plazes.net"
-  CONSUMER = OAuth::Consumer.new(
-    "BqwUVF0WYc9BnfXEa8N6Hg",
-    "Xqc8n78RnNvc0EPclTw6ecBS4J9Nwpvq7MMyFwB3leY",
-    :site => SITE
-  )
+ SITE = "https://plazes.net"
+ CONSUMER = OAuth::Consumer.new(
+   "BqwUVF0WYc9BnfXEa8N6Hg",
+   "Xqc8n78RnNvc0EPclTw6ecBS4J9Nwpvq7MMyFwB3leY",
+   :site => SITE
+ )
 when 'sam'
   SITE = "http://localhost"
   CONSUMER = OAuth::Consumer.new(
@@ -233,6 +233,7 @@ module Lunchrrr::Views
     html do
       head do
         script :src => '/static/jquery.js'
+        script :src => '/static/lunchrrr.js'
         link :rel => 'stylesheet', :type => 'text/css', :href => '/static/style.css'
       end
       body do
@@ -251,9 +252,7 @@ module Lunchrrr::Views
   def when
     h1 'Lunch at?'
     form.when :method => :post, :action => '/when' do
-      #input.earlier :type => :submit, :value => '-'
-      input :name => :time, :value => '14:00', :size => 5
-      #input.later :type => :submit, :value => '+'
+      input.time! :name => :time, :value => '14:00', :size => 5
       br
       input :type => :submit, :value => 'OK!'
     end

@@ -27,6 +27,9 @@ input.earlier, input.later {
 form.when input.ok {
   margin: 1em;
 }
+#earlier, #later {
+  width: 1.5em;
+}
 form.search {
   width: 100%;
   text-align: right;
