@@ -52,7 +52,7 @@ ROOT = File.dirname(__FILE__)
 
 case Socket.gethostname
 when 'sandbox'
- SITE = "https://plazes.net"
+ SITE = "http://plazes.net"
  CONSUMER = OAuth::Consumer.new(
    "BqwUVF0WYc9BnfXEa8N6Hg",
    "Xqc8n78RnNvc0EPclTw6ecBS4J9Nwpvq7MMyFwB3leY",
